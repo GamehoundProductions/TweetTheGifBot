@@ -32,10 +32,14 @@ class ParishHiltron:
 
 
     def Update(self, tweet):
-        user_tweets = utils.get_user_tweets(tweet, 'LimerickDreams', maxTweetCount=1)
+        user_tweets = utils.get_user_tweets(tweet, self.args['target'],
+                                            maxTweetCount=self.args['tweet_limit'])
         prev_react_index = -1
 
         for target_tweet in user_tweets:
+            print(' - Reading tweet %s: %s' % (target_tweet.id,
+                                                target_tweet.full_text[:20]))
+
             kwords = self.kewords_finder.Update(a_tweet=target_tweet,
                                                 dry_run=self.args['dry_run'])
             print(' - Keywords are: %s' % kwords)
@@ -46,31 +50,39 @@ class ParishHiltron:
                                                 dry_run=self.args['dry_run'])
             print(' - Letters are: %s' % letter_c)
 
-        print(' ************************************* ')
-        new_index = random.randint(0, 1)
-        tries = 5
-        while True:
+            print(' ************************************* ')
             new_index = random.randint(0, 1)
-            print(new_index)
-            tries -= 1
-            if tries <= 0:
-                break
-            if new_index != prev_react_index:
-                break
+            tries = 5
+            while True:
+                new_index = random.randint(0, 1)
+                tries -= 1
+                if tries <= 0:
+                    break
+                if new_index != prev_react_index:
+                    break
 
-        if new_index == 0:
-            phrase = self.letter_counter.react(letter_c)
+            if new_index == 0:
+                phrase = self.letter_counter.react(letter_c)
+            else:
+                phrase = self.kewords_finder.react(kwords)
+
+            prev_react_index = new_index
+
+            gif_path = self.emotions.pick_gif(phrase.category)
+            print(' - Msg: %s\n- Gif: %s' % (phrase.text, gif_path))
+            if self.args.get('dry_run', False) is False:
+                self.reply(tweet, phrase.text, gif_path, target_tweet.id)
+            else:
+                print(' - ! - Dry Run! No action!')
+
+
+    def reply(self,tweet, text, gif_path, target_id):
+        abs_gif_path = os.path.abspath(gif_path)
+        if os.path.exists(abs_gif_path):
+            tweet.update_with_media(abs_gif_path, status=text,
+                                        in_reply_to_status_id=target_id)
         else:
-            phrase = self.kewords_finder.react(kwords)
-
-        prev_react_index = new_index
-
-        gif_path = self.emotions.pick_gif(phrase.category)
-        print(' - Msg: %s\n- Gif: %s' % (phrase.text, gif_path))
-
-
-    def reply(self, text, gif_path):
-        pass
+            tweet.update_status(status=text, in_reply_to_status_id=target_id)
 
 
 def main(args):
@@ -104,27 +116,10 @@ if __name__ == '__main__':
     parser.add_argument('--gif', default=None,
                         help='Path to a gif file to tweet.')
     parser.add_argument('--loop', action='store_true')
+    parser.add_argument('--target', default='LimerickDreams',
+                        help='Twitter Username of whome to reply to.')
+    parser.add_argument('--tweet-limit', '-l', default=10,
+                        help='How many tweets to analyze at a time.')
     parser.add_argument('--dry-run', '-d', action='store_true')
     args = parser.parse_args()
     main(vars(args))
-
-
-
-'''
-def check_mentions(tweet, cmd_manager, **kwargs):
-    print('Checking mentions...')
-    try:
-        for mentions in tweepy.Cursor(tweet.mentions_timeline).items():
-            who_mentioned = mentions.text.split(' ')[0]
-            msg = ''
-            print(mentions.user.screen_name)
-            print('Mention: [%s]' % mentions.text)
-            # if 'how are you' in mentions.text.lower():
-            is_replied = check_replied(tweet, who_mentioned, mentions.id_str)
-            print('Status "has replied" to %s : %s' % (who_mentioned, is_replied))
-            if is_replied:
-                continue;
-
-    except tweepy.TweepError as err:
-        print(err.reason)
-'''

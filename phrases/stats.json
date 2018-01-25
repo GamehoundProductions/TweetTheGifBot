@@ -1,0 +1,22 @@
+{
+    "1": {
+        "name" : "letter_use_1",
+        "text" : "You used letter '{target}' {count} times in this poem!",
+        "category" : "interesting"
+    },
+    "2": {
+        "name" : "letter_use_2",
+        "text" : "I see {count} occurrences of '{target}' in this poem...",
+        "category" : "interesting"
+    },
+    "3": {
+        "name" : "letter_use_3",
+        "text" : "What can be better than using '{target}' {count} times? Exactly! Not using it at all...",
+        "category" : "not_sure"
+    },
+    "4": {
+        "name" : "letter_use_3",
+        "text" : "What {target} whas a number? Than you've used '{count}' {target} times!",
+        "category" : "confused"
+    }
+}

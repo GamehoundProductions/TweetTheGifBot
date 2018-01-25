@@ -1,0 +1,27 @@
+{
+    "1": {
+        "name" : "kw_use_1",
+        "text" : "This use of {target} make me feel like...",
+        "category" : "funny"
+    },
+    "2": {
+        "name" : "kw_use_2",
+        "text" : "",
+        "category" : "funny"
+    },
+    "3": {
+        "name" : "kw_use_3",
+        "text" : "Them words like {target} makes this whole story so... dramatic.",
+        "category" : "drama"
+    },
+    "4": {
+        "name" : "kw_use_4",
+        "text" : "How did it make you feel when you chose them '{target}' words in your poem?",
+        "category" : "drama"
+    },
+    "5": {
+        "name" : "kw_use_5",
+        "text" : "What if them words '{target}' were replaced by 'ma doode'?  ",
+        "category" : "intrigued"
+    }
+}
