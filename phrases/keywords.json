@@ -1,7 +1,7 @@
 {
     "1": {
         "name" : "kw_use_1",
-        "text" : "This use of {target} make me feel like...",
+        "text" : "This use of '{target}' make me feel like...",
         "category" : "funny"
     },
     "2": {
@@ -11,7 +11,7 @@
     },
     "3": {
         "name" : "kw_use_3",
-        "text" : "Them words like {target} makes this whole story so... dramatic.",
+        "text" : "Them words like '{target}' makes this whole story so... dramatic.",
         "category" : "drama"
     },
     "4": {

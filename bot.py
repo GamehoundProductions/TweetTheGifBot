@@ -71,7 +71,8 @@ class ParishHiltron:
             gif_path = self.emotions.pick_gif(phrase.category)
             print(' - Msg: %s\n- Gif: %s' % (phrase.text, gif_path))
             if self.args.get('dry_run', False) is False:
-                self.reply(tweet, phrase.text, gif_path, target_tweet.id)
+                self.reply(tweet, '@%s %s' % (self.args['target'], phrase.text),
+                            gif_path, target_tweet.id)
             else:
                 print(' - ! - Dry Run! No action!')
 
