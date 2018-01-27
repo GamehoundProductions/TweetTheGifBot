@@ -21,6 +21,9 @@ class TweetReact(Routiner):
 
 
     def read_phrases(self, path):
+        '''
+        @return: dict. <phrase name> : <Phrase obj>
+        '''
         if not os.path.exists(path):
             print('Not a valid path %s for %s' %\
                                 (path, self.__class__.name))
@@ -46,6 +49,8 @@ class TweetReact(Routiner):
 
     def pick_random_phrase(self):
         keys = list(self.phrases.keys())
+        if len(keys) == 0:
+            return Phrase(None)
         rand_index = random.randint(0, len(keys) - 1)
         phrase_picked = keys[rand_index]
         phrase = self.phrases[phrase_picked]
@@ -57,9 +62,22 @@ class Phrase:
 
     def __init__(self, phrase):
         '''
-        @phrase: dic parsed from phrases/*.json file (just one key)
+        @phrase: dict parsd from phrases/*.json file (just one key) of form:
+            "1": {
+                "name" : "kw_use_1",
+                "text" : "This use of '{target}' make me feel like...",
+                "category" : "funny"
+            },
         '''
         self.phrase = phrase
+        if phrase is None:
+            self.phrase = {
+                '-1' : {
+                    'name' : None,
+                    'text' : '',
+                    'category' : 'confused'
+                }
+            }
 
 
     @property

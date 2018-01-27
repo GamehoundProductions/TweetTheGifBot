@@ -5,6 +5,7 @@ from pdb import set_trace
 from pprint import pprint
 
 from TweetBot.analyze.analyze import TweetAnalyzer
+from TweetBot.tweet_react import TweetReact
 
 
 class WordCounter(TweetAnalyzer):
@@ -14,7 +15,7 @@ class WordCounter(TweetAnalyzer):
 
 
     def Update(self, **kwargs):
-        print('-------- WordCounter -------')
+        # print('-------- WordCounter -------')
         return super().Update(**kwargs)
 
 
@@ -57,3 +58,16 @@ class WordCounter(TweetAnalyzer):
         self.db['analyzed_id'].append(a_tweet.id)
 
         return result
+
+
+    def react(self, data):
+        '''
+        @param data: dict data returned by self.process() function
+        '''
+        tweet_react = TweetReact('./phrases/words_react.json')
+        phrase = tweet_react.pick_random_phrase()
+        return phrase
+
+
+    def __str__(self):
+        return 'WordsCounter'

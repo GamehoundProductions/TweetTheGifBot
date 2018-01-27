@@ -1,5 +1,8 @@
 #!/usr/bin/python3
+import os
+import json
 import tweepy #PIP
+
 
 def check_replied(tweet, user_name, t_id):
     result = tweet.search(q='to:@%s' % user_name, since_id=t_id)
@@ -39,3 +42,40 @@ def get_user_tweets(tweet, target_user, **kwargs):
                 continue
 
         return non_replied_tweets
+
+
+def validate_dir(path):
+    dir = os.path.split(path)[0]
+    return os.path.exists(dir)
+
+
+def read_db(path, verbose=True):
+    db = None
+    file_content = None
+    if verbose:
+        print(' - Reading DB: %s' % path)
+
+    if os.path.exists(path):
+        with open(path, 'r+') as file_obj:
+            file_content = file_obj.read()
+    else:
+        file_content = '{}'
+
+    if file_content == '': #paranoia when handling "empty" file
+        file_content = '{}'
+
+    db = json.loads(file_content)
+    return db
+
+
+def write_to_file(path, data, verbose=True):
+    '''
+    @param path: destination to a file to write to.
+    @param data: text to write to file
+    '''
+    if verbose:
+        if not os.path.exists(path):
+            print(' -- Creating a new file at %s' % path)
+
+    with open(path, 'w+') as file_obj:
+        file_obj.write(data)

@@ -21,24 +21,8 @@ class KewordsFinder(TweetAnalyzer):
         @param tweet: a tweet object. If nothing passed - not reply will be made.
         @param a_tweet: a tweet object that has not been handled yet
         '''
-        print('-------- EmoRetweet -------')
+        # print('-------- EmoRetweet -------')
         data_set = super().Update(**kwargs) # { <tweet_id> : <key words list> }
-
-        # tweet_obj = kwargs.get('tweet', None)
-        # msg = 'Keywords are: %s' % ', '.join(data_set)
-        # try:
-        #     if kwargs.get('dry_run', False) is False:
-        #         if tweet_obj is not None:
-        #             tweet_obj.update_status(status=msg,
-        #                             in_reply_to_status_id=a_tweet.id)
-        #         else:
-        #             print('- EmoRetweet: tweet obj is None - no reply.')
-        #     else:
-        #         print(' - EmoRetweet Dry run')
-
-        #     print(' -- EmoRetweet msg: \n[%s]' % msg)
-        # except tweepy.TweepError as err:
-        #     print(' -!- EmoRetweet error: %s' % err )
 
         return data_set
 
@@ -103,6 +87,9 @@ class KewordsFinder(TweetAnalyzer):
 
 
     def react(self, data):
+        if data is None:
+            return ''
+
         tweet_react = TweetReact('./phrases/keywords.json')
         phrase = tweet_react.pick_random_phrase()
 
@@ -112,3 +99,8 @@ class KewordsFinder(TweetAnalyzer):
         join_symbol = join_with[pick_join]
         phrase.text = phrase.text.format(target=join_symbol.join(keywords))
         return phrase
+
+
+
+    def __str__(self):
+        return 'KeywordsFinder'

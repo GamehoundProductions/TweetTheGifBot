@@ -1,12 +1,12 @@
 {
     "1": {
         "name" : "letter_use_1",
-        "text" : "You used letter '{target}' {count} times in this poem!",
+        "text" : "You used letter '{target}' {count} times in this one!",
         "category" : "interesting"
     },
     "2": {
         "name" : "letter_use_2",
-        "text" : "I see {count} occurrences of '{target}' in this poem...",
+        "text" : "I see {count} occurrences of '{target}' in this tweet...",
         "category" : "interesting"
     },
     "3": {
@@ -16,7 +16,7 @@
     },
     "4": {
         "name" : "letter_use_3",
-        "text" : "What if '{target}' whas a number? Than you've used '{count}' {target} times!",
+        "text" : "What if '{target}' was a number? Than you've used '{count}' {target} times!",
         "category" : "confused"
     }
 }

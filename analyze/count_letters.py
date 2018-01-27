@@ -15,7 +15,7 @@ class LetterCounter(TweetAnalyzer):
 
 
     def Update(self, **kwargs):
-        print('-------- LetterCounter -------')
+        # print('-------- LetterCounter -------')
         return super().Update(**kwargs)
 
 
@@ -62,6 +62,9 @@ class LetterCounter(TweetAnalyzer):
 
 
     def most_used_letter(self, data):
+        '''
+        @param data: dict data returned by self.process() function
+        '''
         result = ['-', -1]
         for name, count in data.items():
             if count > result[1]:
@@ -71,6 +74,9 @@ class LetterCounter(TweetAnalyzer):
 
 
     def random_used_letter(self, data):
+        '''
+        @param data: dict data returned by self.process() function
+        '''
         letters = list(data.keys())
         pick_one = random.randint(0, len(letters) - 1 )
         pick_one = letters[pick_one]
@@ -79,6 +85,9 @@ class LetterCounter(TweetAnalyzer):
 
 
     def react(self, data):
+        '''
+        @param data: dict data returned by self.process() function
+        '''
         tweet_react = TweetReact('./phrases/stats.json')
         phrase = tweet_react.pick_random_phrase()
 
@@ -89,3 +98,7 @@ class LetterCounter(TweetAnalyzer):
 
         phrase.text = phrase.text.format(target=most_used[0], count=most_used[1])
         return phrase
+
+
+    def __str__(self):
+        return 'LetterCounter'

@@ -16,8 +16,8 @@ from TweetBot.analyze.keywords_finder import KewordsFinder
 from TweetBot.analyze.count_words import WordCounter
 from TweetBot.analyze.count_letters import LetterCounter
 from TweetBot.emotions import Emotions
+from TweetBot.history import BotHistory
 from TweetBot import utils
-# from TweetBot.commands.cmd_manager import CmdManager
 
 
 class ParishHiltron:
@@ -26,64 +26,123 @@ class ParishHiltron:
         self.args = args
         self.name = 'Parish Hiltron'
         self.emotions = Emotions('./gifs/')
-        self.kewords_finder = KewordsFinder('./db/keywords.json')
-        self.word_counter = WordCounter('./db/words.json')
-        self.letter_counter = LetterCounter('./db/letters.json')
+        self.history = BotHistory('./db/history.json')
+        print(' -> %s ' % self.history.check_gif_dub('asdf'))
+
+        self.reactions = {
+            'keywords' : KewordsFinder('./db/keywords.json'),
+            'word_counter' : WordCounter('./db/words.json'),
+            'letter_counter' : LetterCounter('./db/letters.json')
+        }
+        # self.kewords_finder = KewordsFinder('./db/keywords.json')
+        # self.word_counter = WordCounter('./db/words.json')
+        # self.letter_counter = LetterCounter('./db/letters.json')
+
+        self.prev_reaction = None #saves prev reaction during this run
+
+
+    def choose_react_type(self, reactions=None, max_tries=5):
+        '''
+            Randomly choose one of the reaction type from the list, but make
+        sure to not repeat a type two times in a row.
+        @param reactions: self.reactions. A dict of all TweetAnalyzer obj
+        @param max_tries: default=5; How many times it will try to pick a tweet
+                        when Random number keep gettin an "already used" index.
+                        Eventually it will pick any to break out of the loop.
+        @return: <TweetAnalyzer> object (in other others - a reaction object/type)
+        '''
+        if reactions is None:
+            reactions = self.reactions
+
+        react_types = list(reactions.keys())
+        react_amount = len(react_types)
+        tries = max_tries
+        while True:
+            new_index = random.randint(0, react_amount - 1)
+            tries -= 1
+            new_reaction = react_types[new_index]
+            if tries <= 0: # done picking a reaction.
+                break      # Whatever is picked now - go for it.
+            if new_reaction != self.prev_reaction:
+                break
+
+        self.prev_reaction = new_reaction
+        return new_reaction
+
+
+    def process(self, tweet, reactions=None):
+        '''
+            Process (analyze) all of the reaction types.
+        @param tweet: a single tweet object (the one with .full_text), not an
+                      actual tweepy api one.
+        @param reactions: self.reactions. A dict of all TweetAnalyzer obj.
+        '''
+        if reactions is None:
+            reactions = self.reactions
+
+        for react_name, react_obj in reactions.items():
+            react_obj.Update(a_tweet=tweet, dry_run=self.args['dry_run'])
 
 
     def Update(self, tweet):
+        '''
+            Find args['target'] user's latest tweets, analyze them and post a
+        reaction response.
+
+        @param tweet: tweepy API object
+        '''
         user_tweets = utils.get_user_tweets(tweet, self.args['target'],
                                             maxTweetCount=self.args['tweet_limit'])
-        prev_react_index = -1
 
         for target_tweet in user_tweets:
-            print(' - Reading tweet %s: %s' % (target_tweet.id,
-                                                target_tweet.full_text[:20]))
+            tweet_text_sample = target_tweet.full_text[:20]
+            print(' - Reading tweet %s: %s' % (target_tweet.id, tweet_text_sample))
+            self.process(target_tweet)
 
-            kwords = self.kewords_finder.Update(a_tweet=target_tweet,
-                                                dry_run=self.args['dry_run'])
-            print(' - Keywords are: %s' % kwords)
-            word_c = self.word_counter.Update(a_tweet=target_tweet,
-                                                dry_run=self.args['dry_run'])
-            print(' - Words are: %s' % word_c)
-            letter_c = self.letter_counter.Update(a_tweet=target_tweet,
-                                                dry_run=self.args['dry_run'])
-            print(' - Letters are: %s' % letter_c)
-
-            print(' ************************************* ')
-            new_index = random.randint(0, 1)
-            tries = 5
-            while True:
-                new_index = random.randint(0, 1)
-                tries -= 1
-                if tries <= 0:
-                    break
-                if new_index != prev_react_index:
-                    break
-
-            if new_index == 0:
-                phrase = self.letter_counter.react(letter_c)
+            reaction_type = self.choose_react_type()
+            reaction = self.reactions[reaction_type]
+            processed_data = {}
+            if reaction is not None:
+                processed_data = reaction.last_data
+                reaction = reaction.react(processed_data)
             else:
-                phrase = self.kewords_finder.react(kwords)
+                print(' - ! - reaction is None for tweet: %s ?!' % tweet_text_sample)
+                continue
 
-            prev_react_index = new_index
+            reply_text = '@%s %s' % (self.args['target'], reaction.text)
+            gif_path = self.emotions.pick_gif(reaction.category)
+            self.reply(tweet, reply_text, gif_path, target_tweet.id, dry_run=self.args['dry_run'])
 
-            gif_path = self.emotions.pick_gif(phrase.category)
-            print(' - Msg: %s\n- Gif: %s' % (phrase.text, gif_path))
-            if self.args.get('dry_run', False) is False:
-                self.reply(tweet, '@%s %s' % (self.args['target'], phrase.text),
-                            gif_path, target_tweet.id)
-            else:
-                print(' - ! - Dry Run! No action!')
+            self.history.save(
+                tweet_id=target_tweet.id,
+                gif_path=gif_path,
+                react_text=reply_text,
+                react_type=reaction_type,
+                dry_run=self.args['dry_run']
+            )
 
 
-    def reply(self,tweet, text, gif_path, target_id):
-        abs_gif_path = os.path.abspath(gif_path)
-        if os.path.exists(abs_gif_path):
-            tweet.update_with_media(abs_gif_path, status=text,
-                                        in_reply_to_status_id=target_id)
+    def reply(self, tweet, text, gif_path, target_id, dry_run=False):
+        if dry_run is True:
+            print(' -- Dry Run to reply is ON: %s' % text)
+            return
+
+        if gif_path and os.path.isfile(gif_path):
+            abs_gif_path = os.path.abspath(gif_path)
+            if os.path.exists(abs_gif_path):
+                tweet.update_with_media(abs_gif_path, status=text,
+                                            in_reply_to_status_id=target_id)
         else:
             tweet.update_status(status=text, in_reply_to_status_id=target_id)
+
+
+    def delete(self, tweet_id_list):
+        '''
+            Delete all of the tweets in the tweet_id_list.
+        '''
+        print(' - preparing to delete tweets.')
+        pass
+
 
 
 def main(args):
@@ -96,27 +155,13 @@ def main(args):
     tweeter_auth.set_access_token(usr_auth.access_token, usr_auth.access_token_secret)
     tweet = tweepy.API(tweeter_auth)
 
-    if args['loop']:
-        try:
-            while True:
-                TheBot.Update(tweet)
-                sleep(45)
-        except KeyboardInterrupt:
-            print('Stopping bot...')
-            return
-    else:
-        TheBot.Update(tweet)
+    TheBot.Update(tweet)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--auth', '-a',
                         help='Path to JSON file with Tweeter credentials')
-    parser.add_argument('--msg', default=None,
-                        help='One time message to send.')
-    parser.add_argument('--gif', default=None,
-                        help='Path to a gif file to tweet.')
-    parser.add_argument('--loop', action='store_true')
     parser.add_argument('--target', default='LimerickDreams',
                         help='Twitter Username of whome to reply to.')
     parser.add_argument('--tweet-limit', '-l', default=10,
