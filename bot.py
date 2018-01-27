@@ -24,10 +24,11 @@ class ParishHiltron:
 
     def __init__(self, args):
         self.args = args
-        self.name = 'Parish Hiltron'
+        self.name = args.get('username', 'HiltronParish')
         self.emotions = Emotions('./gifs/')
         self.history = BotHistory('./db/history.json')
-        print(' -> %s ' % self.history.check_gif_dub('asdf'))
+        # history of tweet ids this bot replied to
+        self.reply_history = BotHistory('./db/reply_history.json', 10000)
 
         self.reactions = {
             'keywords' : KewordsFinder('./db/keywords.json'),
@@ -96,6 +97,12 @@ class ParishHiltron:
 
         for target_tweet in user_tweets:
             tweet_text_sample = target_tweet.full_text[:20]
+            has_replied = utils.check_replied(tweet, self.name, target_tweet.id)
+            if has_replied:
+                print(' - ! - %s already replied to %s (%s)!' % \
+                        (self.name,target_tweet.id, tweet_text_sample))
+                continue
+
             print(' - Reading tweet %s: %s' % (target_tweet.id, tweet_text_sample))
             self.process(target_tweet)
 
@@ -111,29 +118,38 @@ class ParishHiltron:
 
             reply_text = '@%s %s' % (self.args['target'], reaction.text)
             gif_path = self.emotions.pick_gif(reaction.category)
-            self.reply(tweet, reply_text, gif_path, target_tweet.id, dry_run=self.args['dry_run'])
+            response = self.reply(tweet, reply_text, gif_path, target_tweet.id,
+                        dry_run=self.args['dry_run'])
 
             self.history.save(
-                tweet_id=target_tweet.id,
+                tweet_id=response.id,
                 gif_path=gif_path,
                 react_text=reply_text,
                 react_type=reaction_type,
                 dry_run=self.args['dry_run']
             )
 
+            self.reply_history.save(tweet_id=target_tweet.id)
+            set_trace()
 
     def reply(self, tweet, text, gif_path, target_id, dry_run=False):
+        '''
+        @return: tweet response object (with id, text and etc)
+        '''
         if dry_run is True:
             print(' -- Dry Run to reply is ON: %s' % text)
             return
 
+        response = None
         if gif_path and os.path.isfile(gif_path):
             abs_gif_path = os.path.abspath(gif_path)
             if os.path.exists(abs_gif_path):
-                tweet.update_with_media(abs_gif_path, status=text,
+                response = tweet.update_with_media(abs_gif_path, status=text,
                                             in_reply_to_status_id=target_id)
         else:
-            tweet.update_status(status=text, in_reply_to_status_id=target_id)
+            response = tweet.update_status(status=text, in_reply_to_status_id=target_id)
+
+        return response
 
 
     def delete(self, tweet_id_list):
