@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import tweepy #PIP3
+from pdb import set_trace
 
 from auth import TweetAuth
 from TweetBot.history import BotHistory
@@ -14,18 +15,35 @@ def wait_for_user():
     else:
         return False
 
+
 def delete(tweet_api, a_tweet, dry_run=False):
     try:
         print(' - Are you sure you want to delete: %s' % a_tweet.id)
-        print('  - [%s]' % a_tweet.full_text[:20])
+        print('  - [%s]' % a_tweet.text[:20])
         is_delete = wait_for_user()
         if is_delete and dry_run is False:
             print(' - Deleting %s' % a_tweet.id)
             tweet_api.destroy_status(a_tweet.id)
         if dry_run is True:
             print(' -- Dry Run is ON')
+            return False
+        return True
     except:
-        print("Failed to delete: %s" % tweet_id)
+        print("Failed to delete: %s" % a_tweet.id)
+        return False
+
+
+def history_delete(tweet, dry_run=False):
+    reply_history = BotHistory('./db/reply_history.json')
+    history = BotHistory('./db/history.json')
+    for entry in reply_history.history:
+        origin = entry['entry'][0]
+        reply = entry['entry'][1]
+        a_tweet = tweet.get_status(id=reply)
+        has_deleted = delete(tweet, a_tweet, dry_run)
+        if has_deleted:
+            reply_history.delete('entry', entry['entry'])
+            history.delete('tweet_id', reply)
 
 
 def main(args):
@@ -34,6 +52,10 @@ def main(args):
                                         usr_auth.consumer_secret)
     tweeter_auth.set_access_token(usr_auth.access_token, usr_auth.access_token_secret)
     tweet = tweepy.API(tweeter_auth)
+
+    if args['history']:
+        history_delete(tweet, args['dry_run'])
+        return
 
     user_tweets = utils.get_user_tweets(tweet, args['target'],
                                         maxTweetCount=args['tweet_limit'])

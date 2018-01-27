@@ -35,10 +35,6 @@ class ParishHiltron:
             'word_counter' : WordCounter('./db/words.json'),
             'letter_counter' : LetterCounter('./db/letters.json')
         }
-        # self.kewords_finder = KewordsFinder('./db/keywords.json')
-        # self.word_counter = WordCounter('./db/words.json')
-        # self.letter_counter = LetterCounter('./db/letters.json')
-
         self.prev_reaction = None #saves prev reaction during this run
 
 
@@ -97,6 +93,12 @@ class ParishHiltron:
 
         for target_tweet in user_tweets:
             tweet_text_sample = target_tweet.full_text[:20]
+            replied_ids = self.reply_history.get_list('tweet_id')
+            if target_tweet.id in replied_ids:
+                print(' - Already replied to %s [%s]' %\
+                    (target_tweet.id, tweet_text_sample))
+                continue
+
             has_replied = utils.check_replied(tweet, self.name, target_tweet.id)
             if has_replied:
                 print(' - ! - %s already replied to %s (%s)!' % \
@@ -121,6 +123,9 @@ class ParishHiltron:
             response = self.reply(tweet, reply_text, gif_path, target_tweet.id,
                         dry_run=self.args['dry_run'])
 
+            if response is None:
+                continue
+
             self.history.save(
                 tweet_id=response.id,
                 gif_path=gif_path,
@@ -129,8 +134,8 @@ class ParishHiltron:
                 dry_run=self.args['dry_run']
             )
 
-            self.reply_history.save(tweet_id=target_tweet.id)
-            set_trace()
+            self.reply_history.save(entry=[target_tweet.id, response.id])
+
 
     def reply(self, tweet, text, gif_path, target_id, dry_run=False):
         '''

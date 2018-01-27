@@ -97,9 +97,24 @@ class BotHistory:
         # entry['react_text'] = kwargs.get('react_text', '')
         # entry['react_type'] = kwargs.get('react_type', '')
 
-        self.append(**kwargs)
+        self.append(kwargs)
         data_str = json.dumps(self.json_data)
+        utils.write_to_file(self.db_path, data_str)
 
+
+    def delete(self, key, value):
+        to_delete = []
+        for entry in self.history:
+            if not key in entry:
+                continue
+            if entry[key] == value:
+                print('delete <%s> : <%s>' % (key, value))
+                to_delete.append(entry)
+        set_trace()
+        for obj in to_delete:
+            self.history.remove(obj)
+
+        data_str = json.dumps(self.json_data)
         utils.write_to_file(self.db_path, data_str)
 
 
@@ -115,6 +130,13 @@ class BotHistory:
             self.json_data['queue'] = []
 
         self.json_data['queue'].append(entry)
+
+
+    def get_list(self, key):
+        result = []
+        for entry in self.history:
+            result.extend(entry.get(key, []))
+        return result
 
 
     @property
