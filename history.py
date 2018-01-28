@@ -91,29 +91,59 @@ class BotHistory:
             print(' ---- -----')
             return
 
-        entry = {}
-        entry['tweet_id'] = kwargs.get('tweet_id', '')
-        entry['gif_path'] = kwargs.get('gif_path', '')
-        entry['react_text'] = kwargs.get('react_text', '')
-        entry['react_type'] = kwargs.get('react_type', '')
+        # entry = {}
+        # entry['tweet_id'] = kwargs.get('tweet_id', '')
+        # entry['gif_path'] = kwargs.get('gif_path', '')
+        # entry['react_text'] = kwargs.get('react_text', '')
+        # entry['react_type'] = kwargs.get('react_type', '')
 
-        self.append(entry)
+        self.append(kwargs)
         data_str = json.dumps(self.json_data)
+        utils.write_to_file(self.db_path, data_str)
 
+
+    def delete(self, key, value):
+        to_delete = []
+
+        for entry in self.history:
+            if not key in entry:
+                continue
+            is_delete = False
+            if isinstance(entry[key], list):
+                is_delete = True if value in entry[key] else False
+            else:
+                is_delete = True if value == entry[key] else False
+
+            if is_delete:
+                print('delete <%s> : <%s>' % (key, value))
+                to_delete.append(entry)
+
+        for obj in to_delete:
+            self.history.remove(obj)
+
+        data_str = json.dumps(self.json_data)
         utils.write_to_file(self.db_path, data_str)
 
 
     def append(self, entry):
-        print(' - appending ')
+        print(' - appending entry to history- ')
         print(entry)
+        print(' ---- --- ')
         entries = self.history
         if len(entries) >= self.limit:
             entries = entries[0:self.limit]
             entries.pop(0)
-        if self.json_data.get('query', None) is None:
-            self.json_data['query'] = []
+        if self.json_data.get('queue', None) is None:
+            self.json_data['queue'] = []
 
-        self.json_data['query'].append(entry)
+        self.json_data['queue'].append(entry)
+
+
+    def get_list(self, key):
+        result = []
+        for entry in self.history:
+            result.extend(entry.get(key, []))
+        return result
 
 
     @property
