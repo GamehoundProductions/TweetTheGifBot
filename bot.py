@@ -93,7 +93,7 @@ class ParishHiltron:
 
         for target_tweet in user_tweets:
             tweet_text_sample = target_tweet.full_text[:20]
-            replied_ids = self.reply_history.get_list('tweet_id')
+            replied_ids = self.reply_history.get_list('entry')
             if target_tweet.id in replied_ids:
                 print(' - Already replied to %s [%s]' %\
                     (target_tweet.id, tweet_text_sample))

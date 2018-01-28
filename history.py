@@ -104,13 +104,20 @@ class BotHistory:
 
     def delete(self, key, value):
         to_delete = []
+
         for entry in self.history:
             if not key in entry:
                 continue
-            if entry[key] == value:
+            is_delete = False
+            if isinstance(entry[key], list):
+                is_delete = True if value in entry[key] else False
+            else:
+                is_delete = True if value == entry[key] else False
+
+            if is_delete:
                 print('delete <%s> : <%s>' % (key, value))
                 to_delete.append(entry)
-        set_trace()
+
         for obj in to_delete:
             self.history.remove(obj)
 

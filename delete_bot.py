@@ -40,9 +40,11 @@ def history_delete(tweet, dry_run=False):
         origin = entry['entry'][0]
         reply = entry['entry'][1]
         a_tweet = tweet.get_status(id=reply)
+
         has_deleted = delete(tweet, a_tweet, dry_run)
+        has_deleted = True
         if has_deleted:
-            reply_history.delete('entry', entry['entry'])
+            reply_history.delete('entry', reply)
             history.delete('tweet_id', reply)
 
 
