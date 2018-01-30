@@ -9,7 +9,7 @@ from TweetBot.routine import Routiner
 
 class TweetAnalyzer(Routiner):
 
-    def __init__(self, db_path):
+    def __init__(self, db_path, repeat_limit=2):
         self.db_path = db_path
         if not utils.validate_dir(db_path):
             raise RuntimeError('%s is not a valid path in %s! '\
@@ -17,6 +17,7 @@ class TweetAnalyzer(Routiner):
                                     (self.__class__.name, db_path))
         self.db = {}
         self.db = self.read_db(db_path)
+        self.repeat_limit = repeat_limit
         self.last_data = None
 
 
