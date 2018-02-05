@@ -18,8 +18,14 @@ def wait_for_user():
 
 def delete(tweet_api, a_tweet, dry_run=False):
     try:
+        tweet_text = ''
+        if hasattr(a_tweet, 'full_text'):
+            tweet_text = a_tweet.full_text[:20]
+        else:
+            tweet_text = a_tweet.text[:20]
+
         print(' - Are you sure you want to delete: %s' % a_tweet.id)
-        print('  - [%s]' % a_tweet.full_text[:20])
+        print('  - [%s]' % tweet_text)
         is_delete = wait_for_user()
         if is_delete and dry_run is False:
             print(' - Deleting %s' % a_tweet.id)

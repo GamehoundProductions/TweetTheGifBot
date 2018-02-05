@@ -59,7 +59,7 @@ class BotHistory:
         return react_name in latest_records
 
 
-    def check_comment_dub(self, comment_name, dub_size=1, limit=None):
+    def check_comment_dub(self, comment_name, limit=None):
         '''
         @param comment_name: Name of the comment type to check for dubs.
         @param limit: default=None. how many of last records to check.
@@ -75,8 +75,7 @@ class BotHistory:
                 latest_records.append(record)
         '''
         num_of_records = self.count_occurance(comment_name, limit)
-        return num_of_records >= dub_size
-        # return comment_name in latest_records
+        return num_of_records
 
 
     def count_occurance(self, comment_name, limit=None):

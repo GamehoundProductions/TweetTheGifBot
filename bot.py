@@ -31,9 +31,9 @@ class ParishHiltron:
         self.reply_history = BotHistory('./db/reply_history.json', 10000)
 
         self.reactions = {
-            'keywords' : KewordsFinder('./db/keywords.json'),
-            'word_counter' : WordCounter('./db/words.json'),
-            'letter_counter' : LetterCounter('./db/letters.json')
+            'keywords' : KewordsFinder('./db/keywords.json', 8),
+            'word_counter' : WordCounter('./db/words.json', 1),
+            'letter_counter' : LetterCounter('./db/letters.json', 1)
         }
         self.prev_reaction = None #saves prev reaction during this run
 
@@ -58,17 +58,19 @@ class ParishHiltron:
             new_index = random.randint(0, react_amount - 1)
             tries -= 1
             new_reaction = react_types[new_index]
-            new_reaction = 'letter_counter'
-            occurances = self.history.check_comment_dub(new_reaction, 2)
             reaction = self.reactions[new_reaction]
+            occurances = self.history.check_comment_dub(new_reaction)
+
+            if tries <= 0: # done picking a reaction.
+                break      # Whatever is picked now - go for it.
+
             if occurances >= reaction.repeat_limit:
                 print(' - ! - %s repeated %s times! Limit is %s' % \
                         (new_reaction, occurances, reaction.repeat_limit))
                 continue
+
             if new_reaction != self.prev_reaction:
                 break
-            if tries <= 0: # done picking a reaction.
-                break      # Whatever is picked now - go for it.
 
         self.prev_reaction = new_reaction
         return new_reaction
@@ -100,6 +102,7 @@ class ParishHiltron:
 
         for target_tweet in user_tweets:
             tweet_text_sample = target_tweet.full_text[:20]
+            print(tweet_text_sample)
             replied_ids = self.reply_history.get_list('entry')
             if target_tweet.id in replied_ids:
                 print(' - Already replied to %s [%s]' %\
