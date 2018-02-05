@@ -1,3 +1,22 @@
 {
-
+    "1": {
+        "name" : "word_use_1",
+        "text" : "Them {target}!",
+        "category" : "angry"
+    },
+    "2" {
+        "name" : "word_use_2",
+        "text" : "{target}. Just {target}",
+        "category" : "stare"
+    },
+    "3" {
+        "name" : "word_use_3",
+        "text" : "If not for {target}, this would kinda suck.",
+        "category" : "funny"
+    }
+    "4" {
+        "name" : "word_use_4",
+        "text" : "I like how '{target}' with the way World is today.",
+        "category" : "happy"
+    }
 }
