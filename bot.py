@@ -31,9 +31,9 @@ class ParishHiltron:
         self.reply_history = BotHistory('./db/reply_history.json', 10000)
 
         self.reactions = {
-            'keywords' : KewordsFinder('./db/keywords.json', 8),
-            'word_counter' : WordCounter('./db/words.json', 1),
-            'letter_counter' : LetterCounter('./db/letters.json', 1)
+            'keywords' : KewordsFinder('./db/keywords.json', repeat_limit=8),
+            'word_counter' : WordCounter('./db/words.json', repeat_limit=1),
+            'letter_counter' : LetterCounter('./db/letters.json', repeat_limit=1)
         }
         self.prev_reaction = None #saves prev reaction during this run
 
@@ -136,15 +136,21 @@ class ParishHiltron:
             if response is None:
                 continue
 
+            retweet_id = response.retweet_id if  hasattr(response, 'retweet_id') else None
             self.history.save(
                 tweet_id=response.id,
+                retweet_id= retweet_id,
                 gif_path=gif_path,
                 react_text=reply_text,
                 react_type=reaction_type,
                 dry_run=self.args['dry_run']
             )
 
-            self.reply_history.save(entry=[target_tweet.id, response.id])
+            reply_entry = [target_tweet.id, response.id]
+            if retweet_id is not None:
+                reply_entry.append(retweet_id)
+
+            self.reply_history.save(entry=reply_entry)
 
 
     def reply(self, tweet, text, gif_path, target_id, dry_run=False):
@@ -156,6 +162,12 @@ class ParishHiltron:
             return
 
         response = None
+
+        retweet_id = None
+        if self.args['no_retweet'] is False:
+            retweeted = tweet.retweet(target_id)
+            retweet_id = retweeted.id
+
         if gif_path and os.path.isfile(gif_path):
             abs_gif_path = os.path.abspath(gif_path)
             if os.path.exists(abs_gif_path):
@@ -164,6 +176,7 @@ class ParishHiltron:
         else:
             response = tweet.update_status(status=text, in_reply_to_status_id=target_id)
 
+        response.retweet_id = retweet_id
         return response
 
 
@@ -195,6 +208,8 @@ if __name__ == '__main__':
                         help='Path to JSON file with Tweeter credentials')
     parser.add_argument('--target', default='LimerickDreams',
                         help='Twitter Username of whome to reply to.')
+    parser.add_argument('--no-retweet', action='store_true',
+                        help='Do not retweet target when replying with a message')
     parser.add_argument('--tweet-limit', '-l', default=10,
                         help='How many tweets to analyze at a time.')
     parser.add_argument('--dry-run', '-d', action='store_true')

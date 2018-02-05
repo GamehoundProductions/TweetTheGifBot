@@ -10,8 +10,8 @@ from TweetBot.tweet_react import TweetReact
 
 class LetterCounter(TweetAnalyzer):
 
-    def __init__(self, db_path):
-        super().__init__(db_path)
+    def __init__(self, db_path, repeat_limit=1):
+        super().__init__(db_path, repeat_limit=repeat_limit)
 
 
     def Update(self, **kwargs):

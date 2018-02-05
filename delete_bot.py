@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import argparse
+from time import sleep
 import tweepy #PIP3
 from pdb import set_trace
 
@@ -20,9 +21,9 @@ def delete(tweet_api, a_tweet, dry_run=False):
     try:
         tweet_text = ''
         if hasattr(a_tweet, 'full_text'):
-            tweet_text = a_tweet.full_text[:20]
+            tweet_text = a_tweet.full_text[:80]
         else:
-            tweet_text = a_tweet.text[:20]
+            tweet_text = a_tweet.text[:80]
 
         print(' - Are you sure you want to delete: %s' % a_tweet.id)
         print('  - [%s]' % tweet_text)
@@ -50,6 +51,14 @@ def history_delete(tweet, dry_run=False):
 
         has_deleted = delete(tweet, a_tweet, dry_run)
         has_deleted = True
+        print(entry)
+        if len(entry['entry']) >= 3:
+            if entry['entry'][2] is not None:
+                retweet = tweet.get_status(id=entry['entry'][2])
+                print(' - ! - Removing retweet %s ' % entry['entry'][2])
+                sleep(1)
+                delete(tweet, retweet, dry_run)
+
         if has_deleted:
             reply_history.delete('entry', reply)
             history.delete('tweet_id', reply)
