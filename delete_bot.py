@@ -19,7 +19,7 @@ def wait_for_user():
 def delete(tweet_api, a_tweet, dry_run=False):
     try:
         print(' - Are you sure you want to delete: %s' % a_tweet.id)
-        print('  - [%s]' % a_tweet.text[:20])
+        print('  - [%s]' % a_tweet.full_text[:20])
         is_delete = wait_for_user()
         if is_delete and dry_run is False:
             print(' - Deleting %s' % a_tweet.id)
@@ -28,8 +28,9 @@ def delete(tweet_api, a_tweet, dry_run=False):
             print(' -- Dry Run is ON')
             return False
         return True
-    except:
-        print("Failed to delete: %s" % a_tweet.id)
+    except Exception as err:
+        print('Failed to delete: %s' % a_tweet.id)
+        print('Reasong: %s' % err)
         return False
 
 

@@ -58,10 +58,17 @@ class ParishHiltron:
             new_index = random.randint(0, react_amount - 1)
             tries -= 1
             new_reaction = react_types[new_index]
-            if tries <= 0: # done picking a reaction.
-                break      # Whatever is picked now - go for it.
+            new_reaction = 'letter_counter'
+            occurances = self.history.check_comment_dub(new_reaction, 2)
+            reaction = self.reactions[new_reaction]
+            if occurances >= reaction.repeat_limit:
+                print(' - ! - %s repeated %s times! Limit is %s' % \
+                        (new_reaction, occurances, reaction.repeat_limit))
+                continue
             if new_reaction != self.prev_reaction:
                 break
+            if tries <= 0: # done picking a reaction.
+                break      # Whatever is picked now - go for it.
 
         self.prev_reaction = new_reaction
         return new_reaction

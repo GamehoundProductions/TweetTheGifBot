@@ -1,1 +1,11 @@
-{"queue": []}
+{
+    "queue": [
+        {
+            "gif_path": "./gifs//emo_interesting/interesting_1.gif",
+            "dry_run": false,
+            "tweet_id": 958820847736668160,
+            "react_type": "letter_counter",
+            "react_text": "@HiltronParish I see 5 occurrences of 'a' in this tweet..."
+        }
+    ]
+}

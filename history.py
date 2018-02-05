@@ -59,7 +59,7 @@ class BotHistory:
         return react_name in latest_records
 
 
-    def check_comment_dub(self, comment_name, limit=None):
+    def check_comment_dub(self, comment_name, dub_size=1, limit=None):
         '''
         @param comment_name: Name of the comment type to check for dubs.
         @param limit: default=None. how many of last records to check.
@@ -68,12 +68,33 @@ class BotHistory:
         '''
         if limit is None:
             limit = self.limit
-
+        '''
         latest_records = []
         for record in self.comments[:limit]:
             if len(record) > 0:
                 latest_records.append(record)
-        return comment_name in latest_records
+        '''
+        num_of_records = self.count_occurance(comment_name, limit)
+        return num_of_records >= dub_size
+        # return comment_name in latest_records
+
+
+    def count_occurance(self, comment_name, limit=None):
+        '''
+        @param comment_name: Name of the comment type to check for dubs.
+        @param limit: default=None. how many of last records to check.
+                        None means - check all of them.
+        '''
+        if limit is None:
+            limit = self.limit
+
+        latest_records = []
+        for record in self.reactions[:limit]:
+            if len(record) == 0:
+                continue
+            if comment_name.lower() == record.lower():
+                latest_records.append(record)
+        return len(latest_records)
 
 
     def save(self, **kwargs):
@@ -91,14 +112,8 @@ class BotHistory:
             print(' ---- -----')
             return
 
-        # entry = {}
-        # entry['tweet_id'] = kwargs.get('tweet_id', '')
-        # entry['gif_path'] = kwargs.get('gif_path', '')
-        # entry['react_text'] = kwargs.get('react_text', '')
-        # entry['react_type'] = kwargs.get('react_type', '')
-
         self.append(kwargs)
-        data_str = json.dumps(self.json_data)
+        data_str = json.dumps(self.json_data, indent=4)
         utils.write_to_file(self.db_path, data_str)
 
 
@@ -162,7 +177,7 @@ class BotHistory:
         ''' Return list of latest tweet_id posted by the bot. '''
         tweet_ids = []
         for record in self.comments:
-            if len(record) > 0:
+            if len(record) == 0:
                 tweet_ids.append(record[0])
         return tweet_ids
 
